@@ -19,7 +19,7 @@
   <body>
     <script>
       (function() {
-        var cv, mouseX, mouseY;
+        var fx, mouseX, mouseY;
         
         /*
         mouseX = mouseY = 0;
@@ -30,6 +30,7 @@
       });
         */
         
+        // basic particle
         var Particle = function(p) {
           this.x = this.y = 0;
           this.vx = this.vy = 1;
@@ -43,6 +44,7 @@
           }
         };
         
+        // custom worm particle
         var Worm = function(p) {
           this.p = new Particle();  
         };
@@ -50,6 +52,7 @@
         Worm.prototype = {
           constructor: Worm,
           reset: function(x, y, r, g, b) {
+            // set worm particle properties
             this.active = true;
             this.p.x = x;
             this.p.y = y;
@@ -61,11 +64,12 @@
             this.t = Math.random() * 2 * Math.PI;
             this.ti = Math.random() * 0.2 - 0.1;
             this.size = 1 + Math.random() * 4;
-            this.col = `rgba(${r}, ${g}, ${b},`;
+           
                              this.alpha = 0;
                              this.phase = 1;
                              this.damp = 16 + Math.random() * 4;
             
+            // sometimes make a long lasting reddish particle
             if (Math.random() < 0.005) {
               this.maxAlpha = 0.8;  
               this.alphaSpeed = 0.005;
@@ -74,36 +78,46 @@
               this.vRad = 6;
             }
             
+            // sometimes make a large particle with a low alpha
             if (Math.random() < 0.3) {
               this.size = Math.random() * 20 + 10 ;
               this.maxAlpha /= 3;
             }
+            
+            this.col = `rgba(${r}, ${g}, ${b},`;
           },
           
           update: function(c) {
             if (!this.active) { return; }
             
+            // polar coordinates determine destination velocity
             this.dx = this.vRad * Math.cos(this.t);
             this.dy = this.vRad * Math.sin(this.t);
             
+            // randomly alter spped and direction
             if (Math.random() < 0.1) {
               this.vRad = Math.random() * 3;
               this.t = Math.random() * 2 * Math.PI;
             }
             
+            // ease-out to destination velocity
             this.p.vx += (this.dx - this.p.vx) / this.damp;
             this.p.vy += (this.dy - this.p.vy) / this.damp;
             
+            // increment theta
             this.t += this.ti;
             
             this.p.update();
             
+            // fade the worm in
             if (this.phase === 1) {
               this.alpha += 0.05;
               if (this.alpha > this.maxAlpha) {
                 this.alpha = this.maxAlpha;
                 this.phase = 2;  
               }
+              
+            // fade the worm out
             } else if (this.phase === 2) {
               this.alpha -= this.alphaSpeed;
               if (this.alpha <= 0) {
@@ -111,6 +125,7 @@
               }
             }
             
+            // draw the worm
             c.fillStyle = `${this.col} ${this.alpha})`;;
             c.beginPath();
             c.arc(this.p.x, this.p.y, this.size, 0, Math.PI * 2, false);
@@ -119,7 +134,8 @@
           }
         };
         
-        var Cv = function(width, height) {
+        // main fx class
+        var Fx = function(width, height) {
           var SIZE = width * height * 4,
               WORM_NUM = 400;
           
@@ -152,12 +168,15 @@
           c = canvas.getContext('2d');
           c.fillRect(0, 0, canvas.width, canvas.height);
           
-          mediaPrefs = { "video": true };
+          mediaPrefs = { video: true, audio: false };
           video = document.createElement('video');
           
+          // brightness and contrast 
           contrast = 10;
           factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
           
+          
+          // create some worms
           worms = [];
           wormIndex = 0;
           
@@ -165,6 +184,7 @@
             worms.push(new Worm());  
           }
           
+          // get the media
           if (navigator.getUserMedia) {  
             navigator.getUserMedia(mediaPrefs, function(stream) {
               video.src = stream;
@@ -177,6 +197,7 @@
             }, error);
           } 
           
+          // add some buffers, for frame differencing and other fx
           addBuffer('diff');
           addBuffer('prev');
           addBuffer('blur');
@@ -188,6 +209,7 @@
           var loop = function() {
             var r, g, b, cr, cg, cb, qi, worm, t;
             
+            // frame differencing
             cv.diff.drawImage(video, 0, 0);    
             cv.diff.globalCompositeOperation = 'difference';
             cv.diff.drawImage(cv.prevCanvas, 0, 0);
@@ -197,7 +219,8 @@
             
             pixels = cv.diff.getImageData(0, 0, width, height);
             
-            if (Math.random() < 0.9) {
+            // draw some worms when there is motion
+            if (Math.random() < 0.8) {
               for (var i = 0; i < SIZE; i += 4) {
                 r = pixels.data[i];
                 
@@ -223,6 +246,8 @@
               }
             }
             
+            // combine actual video feed and frame differencing
+            // for a trail effect
             cv.buff.globalCompositeOperation = 'lighten';
             cv.buff.drawImage(video, 0, 0);
             cv.buff.drawImage(cv.diffCanvas, 0, 0);
@@ -230,6 +255,7 @@
             cv.buff.globalCompositeOperation = 'darken';
             cv.buff.drawImage(cv.diffCanvas, 0, 0);
             
+            // add a very subtle scaled video feedback effect
             cv.blur.globalAlpha = 1;
             cv.blur.save();
             cv.blur.translate(-width * 0.005, -height * 0.005);
@@ -242,8 +268,10 @@
             cv.buff.drawImage(cv.blurCanvas, 0, 0);
             cv.buff.globalAlpha = 1;
             
+            // draw the buffer to the main context
             c.drawImage(cv.buffCanvas, 0, 0);
             
+            // brightness and contrast
             pixels = c.getImageData(0, 0, 640, 480);
             
             for (var i = 0; i < SIZE; i += 4) {
@@ -271,7 +299,8 @@
           loop();
         };
         
-        cv = new Cv(640, 480);
+        // start
+        fx = new Fx(640, 480);
         
       })();
     </script>
