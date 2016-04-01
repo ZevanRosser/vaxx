@@ -1,4 +1,7 @@
 (function() {
+  var WIDTH = 630,
+      HEIGHT = 480;
+  
   var fx, mouseX, mouseY;
   
   /*
@@ -24,8 +27,46 @@
     }
   };
   
+  var Crackle = function() {
+    this.p = new Particle();  
+  };
+  
+  Crackle.prototype = {
+    constructor: Crackle,
+    reset: function() {
+      this.p.x = Math.random() * WIDTH;
+      this.p.y = Math.random() * HEIGHT;
+      this.p.vx = this.p.vy = 0;
+      this.t = 0;
+      this.startTime = Math.random() * 300;
+    },
+    update: function(c) {
+      this.t++;
+      if (this.t < this.startTime) { return; }
+      
+      var leng = 100 + this.t;
+      
+      if (Math.random() < 0.01 || this.t > 200) {
+        this.reset();  
+        
+      }
+      for(var i = 0; i < leng; i ++) {
+        if (Math.random() < 0.2) {
+          this.p.vx += ((Math.random() * 8 - 4) - this.p.vx) / 6;
+          this.p.vy += ((Math.random() * 8 - 4) - this.p.vy) / 6;
+         }
+        
+        
+      this.p.update();
+      c.fillStyle = 'white';
+      c.fillRect(this.p.x, this.p.y, 2, 2);
+      }
+    }
+  };
+  
+  
   // custom worm particle
-  var Worm = function(p) {
+  var Worm = function() {
     this.p = new Particle();  
   };
   
@@ -65,9 +106,9 @@
       }
       
       this.col = `rgba(${r}, ${g}, ${b},`;
-                       },
+    },
                        
-                       update: function(c) {
+    update: function(c) {
         if (!this.active) { return; }
         
         // polar coordinates determine destination velocity
@@ -115,12 +156,14 @@
     };
     
     // main fx class
-    var Fx = function(width, height) {
+  var Fx = function(width, height) {
     var SIZE = width * height * 4,
-    WORM_NUM = 400;
+    WORM_NUM = 400,
+    CRACKLE_NUM = 20;
     
     var canvas, video, mediaPrefs, c, pixels,
-    cv, contrast, factor, worms, wormIndex;
+    cv, contrast, factor, worms, worm, wormIndex,
+    crackles, crackle;
     
     var error = function(error) {
     alert('video error', error.code); 
@@ -162,6 +205,16 @@
   
   for(var i = 0; i < WORM_NUM; i++) {
     worms.push(new Worm());  
+  }
+  
+  // create some worms
+  crackles = [];
+  // wormIndex = 0;
+  
+  for(var i = 0; i < CRACKLE_NUM; i++) {
+    var crackle = new Crackle();
+    crackle.reset();
+    crackles.push(crackle);  
   }
   
   // get the media
@@ -224,6 +277,7 @@
       if (worms[i].active) {
         worms[i].update(cv.diff);
       }
+      
     }
     
     // combine actual video feed and frame differencing
@@ -242,6 +296,10 @@
     cv.blur.scale(1.01, 1.01);
     cv.blur.drawImage(canvas, 0, 0);
     cv.blur.restore();
+    
+    for (var i = 0; i < CRACKLE_NUM; i++) {
+      crackles[i].update(cv.blur);
+    }
     
     cv.buff.globalCompositeOperation = 'normal';
     cv.buff.globalAlpha = 0.12;
@@ -280,6 +338,6 @@
 };
  
  // start
- fx = new Fx(640, 480);
+ fx = new Fx(WIDTH, HEIGHT);
 
 })();
