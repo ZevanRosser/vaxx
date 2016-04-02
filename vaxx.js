@@ -78,7 +78,7 @@
       this.p.y = y;
       this.p.vx = 0;
       this.p.vy = 0;
-      this.maxAlpha = 0.1 + Math.random() * 0.3;
+      this.maxAlpha = 0.05 + Math.random() * 0.15;
       this.alphaSpeed = 0.01 * Math.random() + 0.01;
       this.vRad = Math.random() * 3;
       this.t = Math.random() * 2 * Math.PI;
@@ -101,7 +101,7 @@
       // sometimes make a large particle with a low alpha
       if (Math.random() < 0.3) {
         this.size = Math.random() * 20 + 10 ;
-        this.maxAlpha /= 3;
+        this.maxAlpha /= 5;
       }
       
       this.col = `rgba(${r}, ${g}, ${b},`;
@@ -435,13 +435,13 @@
 
      
     if (clump) {
-      adx = activeX;
+      adx = activeX ;
       ady = activeY;  
       if (Math.random() < 0.05) {
-        activeZoom = 3 + Math.random() * 2;  
+        activeZoom = 1.5 + Math.random() * .3;  
       }
       
-      activeZoom = 4;
+      // activeZoom = 4;
       
     } else 
     
@@ -451,22 +451,30 @@
      
 
     zoomDest += (activeZoom - zoomDest) / 12;
-    ddx += (adx - ddx) / 6;
-    ddy += (ady - ddy) / 6;
+    ddx += (adx - ddx) / 32;
+    ddy += (ady - ddy) / 22;
     
 
     c.drawImage(cv.gradCanvas, 0, 0);
     
    
    
-  
-    if (Math.random() < 0.03) {
+    
+    
+    if (Math.random() < 0.1 && modeCount > targTime) {
       mode = 'in';
+      modeCount = 0;
+      targTime = 10 + Math.random() * 30;
     }
   
-    if (Math.random() < 0.03) {
+    if (Math.random() < 0.1 && modeCount > targTime) {
       mode = 'out';
+      modeCount = 0;
+      targTime = 10 + Math.random() * 30;
     }
+      
+    modeCount++;
+       
   
     if (mode === 'out') {
       zFade = 0;
@@ -499,7 +507,7 @@
   loop();
 };
  
- var mode = 'in', zfade = 1, zd = 0;
+ var mode = 'in', zfade = 1, zd = 1, modeCount = 0, targTime = 120;
  // start
  fx = new Fx(WIDTH, HEIGHT);
 
