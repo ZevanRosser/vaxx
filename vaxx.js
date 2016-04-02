@@ -238,8 +238,7 @@
     jsNode = audioCtx.createScriptProcessor(SAMPLE_SIZE, 1, 1);
     
     amplitudes = new Uint8Array(analyser.frequencyBinCount);
-    
-    console.log(amplitudes.length);
+  
     jsNode.onaudioprocess = function () {
       amplitudes = new Uint8Array(analyser.frequencyBinCount);
       analyser.getByteTimeDomainData(amplitudes);
@@ -279,10 +278,13 @@
   
   var ddx = ddy = adx = ady = 0;
   
+  var activeX = activeY = 0;
+  
+  var zoomDest = 1;
+  var activeZoom = 1; 
   var loop = function() {
     var r, g, b, cr, cg, cb, qi, worm, t, 
-        xs, ys, wx, wy, clump, activeX, activeY, 
-        activeZoom, avgX, avgY;
+        xs, ys, wx, wy, clump;
     
     // frame differencing
     cv.diff.drawImage(video, 0, 0);    
@@ -297,10 +299,9 @@
     xs = [];
     ys = [];
    
-    activeX = 0,
-    activeY = 0, 
-    activeZoom = 3;
-    avgX = avgY = 0;
+    var avgX = avgY = 0;
+    var activeWorms = 0;
+     
     
     // draw some worms when there is motion
     if (Math.random() < 0.8) {
@@ -310,7 +311,7 @@
         if (r > 50 && Math.random() < 0.2) {
           qi = i / 4;
           worm = worms[wormIndex++ % WORM_NUM];
-          
+          activeWorms++;
           if (!worm.active) {
             t = Math.PI * 2 * Math.random();
             wx = qi % width + 10 * Math.cos(t);
@@ -424,13 +425,46 @@
     
     cv.grad.putImageData(pixels, 0, 0);
 
+     
     if (clump) {
       adx = activeX;
       ady = activeY;  
+      if (Math.random() < 0.05) {
+        activeZoom = 1 + Math.random() * 2;  
+      }
+      
+      activeZoom = 1.4;
+      
+    } else 
+    
+    if (Math.random() < 0.05) {
+       //  activeZoom = 1;
+      }
+     
+    
+     
+    
+    /*if (window.mode === 'normal') {
+      adx = ady = ddx = ddy = 0;  
+       activeZoom = 1;
+    }*/
+    
+    // window.mode = 'pan';
+    
+    /*
+    if (Math.random() < 0.01) {
+      window.mode = 'pan';
     }
     
-    ddx += (adx - ddx) / 12;
-    ddy += (ady - ddy) / 12;
+    if (Math.random() < 0.01) {
+      window.mode = 'normal';
+     
+    }*/
+    
+    
+    zoomDest += (activeZoom - zoomDest) / 12;
+    ddx += (adx - ddx) / 22;
+    ddy += (ady - ddy) / 22;
     
     /*
     c.save();
@@ -443,12 +477,19 @@
 
     c.drawImage(cv.gradCanvas, 0, 0);
     
-    activeZoom = 2;
     
-    var zzz = `translate3d(${ddx}px, ${ddy}px, 0) scale3d(${activeZoom}, ${activeZoom}, 1) translate3d(-${ddx}px, -${ddy}px, 0)`;
+    
+    var zzz = `
+        translate3d(${window.innerWidth / 2}px, ${window.innerHeight / 2}px, 0)
+        translate3d(${ddx}px, ${ddy}px, 0) 
+        scale3d(${zoomDest}, ${zoomDest}, 1) 
+        translate3d(-${ddx}px, -${ddy}px, 0)
+        translate3d(-${(width / 2) * zoomDest}px, -${(height / 2) * zoomDest}px, 0)
+          `;
+   
      
-    
-    // frame.style.transform = zzz;
+    console.log(window.mode, zzz);
+    frame.style.transform = zzz;
     
     requestAnimationFrame(loop);
   };
