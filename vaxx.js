@@ -78,7 +78,7 @@
       this.p.y = y;
       this.p.vx = 0;
       this.p.vy = 0;
-      this.maxAlpha = 0.05 + Math.random() * 0.15;
+      this.maxAlpha = 0.1 + Math.random() * 0.25;
       this.alphaSpeed = 0.01 * Math.random() + 0.01;
       this.vRad = Math.random() * 3;
       this.t = Math.random() * 2 * Math.PI;
@@ -91,7 +91,7 @@
       
       // sometimes make a long lasting reddish particle
       if (Math.random() < 0.005) {
-        this.maxAlpha = 0.8;  
+        this.maxAlpha = 0.6;  
         this.alphaSpeed = 0.005;
         r = 255;
         g = b = Math.floor(Math.random() * 255);
@@ -100,7 +100,7 @@
       
       // sometimes make a large particle with a low alpha
       if (Math.random() < 0.3) {
-        this.size = Math.random() * 20 + 10 ;
+        this.size = Math.random() * 10 + 10 ;
         this.maxAlpha /= 5;
       }
       
@@ -157,7 +157,7 @@
     // main fx class
     var Fx = function(width, height) {
     var SIZE = width * height * 4,
-    WORM_NUM = 400,
+    WORM_NUM = 50,
     CRACKLE_NUM = 20,
     SAMPLE_SIZE = 1024;
     
@@ -335,7 +335,7 @@
               ys.push(wy);
             }
             
-            if (xs.length > 20) {
+            if (xs.length > 4) {
               for (var i = 0; i < xs.length; i ++) {
                 avgX += xs[i];
                 avgY += ys[i];
@@ -437,7 +437,7 @@
     if (clump) {
       adx = activeX ;
       ady = activeY;  
-      if (Math.random() < 0.05) {
+      if (Math.random() < 0.025) {
         activeZoom = 1.5 + Math.random() * .3;  
       }
       
@@ -450,9 +450,9 @@
       }
      
 
-    zoomDest += (activeZoom - zoomDest) / 12;
-    ddx += (adx - ddx) / 32;
-    ddy += (ady - ddy) / 22;
+    zoomDest += (activeZoom - zoomDest) / 22;
+    ddx += (adx - ddx) / 62;
+    ddy += (ady - ddy) / 42;
     
 
     c.drawImage(cv.gradCanvas, 0, 0);
@@ -464,13 +464,13 @@
     if (Math.random() < 0.1 && modeCount > targTime) {
       mode = 'in';
       modeCount = 0;
-      targTime = 10 + Math.random() * 30;
+      targTime = 10 + Math.random() * 60;
     }
   
     if (Math.random() < 0.1 && modeCount > targTime) {
       mode = 'out';
       modeCount = 0;
-      targTime = 10 + Math.random() * 30;
+      targTime = 10 + Math.random() * 60;
     }
       
     modeCount++;
