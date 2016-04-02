@@ -4,9 +4,8 @@
   
   var fx, mouseX, mouseY;
   
-  
+  // debugging only
   mouseX = mouseY = 0;
-  
   document.addEventListener('mousemove', function(e) {
     mouseX = e.pageX;
     mouseY = e.pageY;
@@ -147,7 +146,7 @@
         }
         
         // draw the worm
-        c.fillStyle = `${this.col} ${this.alpha})`;;
+        c.fillStyle = `${this.col} ${this.alpha})`;
         c.beginPath();
         c.arc(this.p.x, this.p.y, this.size, 0, Math.PI * 2, false);
         c.fill();
@@ -159,20 +158,14 @@
     var Fx = function(width, height) {
     var SIZE = width * height * 4,
     WORM_NUM = 400,
-    CRACKLE_NUM = 20;
+    CRACKLE_NUM = 20,
+    SAMPLE_SIZE = 1024;
     
     var AudioContext, canvas, video, mediaPrefs, c, pixels,
     cv, contrast, factor, worms, worm, wormIndex,
-    crackles, crackle;
+    crackles, crackle, audioCtx, analyser, jsNode,
+    amplitudes, audioStream;
     
-    
-    var audioContext;
-    var analyserNode;
-    var javascriptNode;
-    var sampleSize = 1024;  // number of samples to collect before analyzing
-    // decreasing this gives a faster sonogram, increasing it slows it down
-    var amplitudeArray;     // array to hold frequency data
-    var audioStream;
     
     var error = function(error) {
     alert('video error', error.code); 
@@ -196,7 +189,7 @@
   cv = {};
   canvas = createCanvas();
   var frame = document.createElement('div');
-      frame.classList.add('frame');
+  frame.classList.add('frame');
   document.body.appendChild(frame);
   frame.appendChild(canvas);
   
@@ -205,7 +198,7 @@
   
   mediaPrefs = { video: true, audio: true };
   video = document.createElement('video');
-  
+  // document.body.appendChild(video);
   // brightness and contrast 
   contrast = 10;
   factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
@@ -230,58 +223,49 @@
   }
   
   AudioContext = window.webkitAudioContext || window.AudioContext;
-  var audioContext;
+  var audioCtx;
   try {
-    audioContext = new AudioContext();
+    audioCtx = new AudioContext();
   } catch(e) {
     alert('Web Audio API is not supported in this browser');
   }
   
-  function setupAudioNodes(stream) {
-    // create the media stream from the audio input source (microphone)
-    sourceNode = audioContext.createMediaStreamSource(stream);
+  var initAudio = function(stream) {
+    sourceNode = audioCtx.createMediaStreamSource(stream);
     audioStream = stream;
-    analyserNode   = audioContext.createAnalyser();
-    javascriptNode = audioContext.createScriptProcessor(sampleSize, 1, 1);
-    // Create the array for the data values
-    amplitudeArray = new Uint8Array(analyserNode.frequencyBinCount);
-    // setup the event handler that is triggered every time enough samples have been collected
-    // trigger the audio analysis and draw one column in the display based on the results
-    console.log(amplitudeArray.length);
-    javascriptNode.onaudioprocess = function () {
-      amplitudeArray = new Uint8Array(analyserNode.frequencyBinCount);
-      analyserNode.getByteTimeDomainData(amplitudeArray);
-      // draw one column of the display
-      //requestAnimFrame(drawTimeDomain);
-      
-    }
-      // Now connect the nodes together
-      // Do not connect source node to destination - to avoid feedback
-      sourceNode.connect(analyserNode);
-    analyserNode.connect(javascriptNode);
-    javascriptNode.connect(audioContext.destination);
-  }
-  
-  var processStream = function(stream) {
+    analyser   = audioCtx.createAnalyser();
+    jsNode = audioCtx.createScriptProcessor(SAMPLE_SIZE, 1, 1);
     
+    amplitudes = new Uint8Array(analyser.frequencyBinCount);
+    
+    console.log(amplitudes.length);
+    jsNode.onaudioprocess = function () {
+      amplitudes = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteTimeDomainData(amplitudes);
+    };
+    // Now connect the nodes together
+    // Do not connect source node to destination - to avoid feedback
+    sourceNode.connect(analyser);
+    analyser.connect(jsNode);
+    jsNode.connect(audioCtx.destination);
   };
+  
   // get the media
   if (navigator.getUserMedia) {  
     navigator.getUserMedia(mediaPrefs, function(stream) {
       video.src = stream;
       video.play();
-      setupAudioNodes(stream);
+      initAudio(stream);
     }, error);
   } else if (navigator.webkitGetUserMedia) {  
     navigator.webkitGetUserMedia(mediaPrefs, function(stream){
       video.src = window.webkitURL.createObjectURL(stream);
       video.play();
-      setupAudioNodes(stream);
+      initAudio(stream);
     }, error);
   } 
   
-  
-  
+
   // add some buffers, for frame differencing and other fx
   addBuffer('diff');
   addBuffer('prev');
@@ -292,9 +276,12 @@
   cv.buff.fillStyle = 'black';
   cv.buff.fillRect(0, 0, width, height);
   
-   var ddx = ddy = adx = ady = 0;
+  var ddx = ddy = adx = ady = 0;
+  
   var loop = function() {
-    var r, g, b, cr, cg, cb, qi, worm, t;
+    var r, g, b, cr, cg, cb, qi, worm, t, 
+        xs, ys, wx, wy, clump, activeX, activeY, 
+        activeZoom, avgX, avgY;
     
     // frame differencing
     cv.diff.drawImage(video, 0, 0);    
@@ -306,12 +293,14 @@
     
     pixels = cv.diff.getImageData(0, 0, width, height);
     
-    var xs = [];
-    var ys = [];
-    var wx , wy, clump;
-     var activeX = 0,
-         activeY = 0, 
-         activeZoom = 3;
+    xs = [];
+    ys = [];
+   
+    activeX = 0,
+    activeY = 0, 
+    activeZoom = 3;
+    avgX = avgY = 0;
+    
     // draw some worms when there is motion
     if (Math.random() < 0.8) {
       for (var i = 0; i < SIZE; i += 4) {
@@ -326,29 +315,28 @@
             wx = qi % width + 10 * Math.cos(t);
             wy = qi / width + 10 * Math.random(t);
             
+            // @TODO figure out colors
+            worm.reset(wx, wy, 255, 255, 255);
+            
+            // find the main area of activity for panning
+            // and zooming the camera
             if (!clump) {
               xs.push(wx);
               ys.push(wy);
             }
+            
             if (xs.length > 20) {
-              var avgX = 0, avgY = 0;
               for (var i = 0; i < xs.length; i ++) {
                 avgX += xs[i];
                 avgY += ys[i];
               }
+              
               avgX /= xs.length;
               avgY /= ys.length;
               activeX = avgX;
-              activeY = avgY;
-              // cv.diff.fillStyle = 'red';
-              // cv.diff.fillRect(avgX, avgY, 100, 100);  
+              activeY = avgY; 
               clump = true;
             }
-            worm.reset(
-              wx,
-              wy,
-              255, 255, 255
-            );
           }
         }
       }
@@ -358,11 +346,9 @@
       if (worms[i].active) {
         worms[i].update(cv.diff);
       }
-      
     }
     
-    
-    
+
     // combine actual video feed and frame differencing
     // for a trail effect
     cv.buff.globalCompositeOperation = 'lighten';
@@ -372,15 +358,11 @@
     cv.buff.globalCompositeOperation = 'darken';
     cv.buff.drawImage(cv.diffCanvas, 0, 0);
     
-    
-    
-    
-    if (amplitudeArray) {
-      
+    if (amplitudes) {
       var minValue = 9999999;
       var maxValue = 0;
-      for (var i = 0; i < amplitudeArray.length; i++) {
-        var value = amplitudeArray[i] / 256;
+      for (var i = 0; i < amplitudes.length; i++) {
+        var value = amplitudes[i] / 256;
         if(value > maxValue) {
           maxValue = value;
         } else if(value < minValue) {
@@ -393,8 +375,6 @@
       } else {
         maxValue /= 4;
       }
-      
-      // console.log(minValue, maxValue, '/', minValue - maxValue);
       
       // add a very subtle scaled video feedback effect
       cv.blur.globalAlpha = 1;
@@ -410,38 +390,13 @@
       for (var i = 0; i < CRACKLE_NUM; i++) {
         crackles[i].update(cv.blur);
       }
-      
-      /*pixels = c.getImageData(0, 0, 640, 480);
-      var inc = 0;
-      for (var i = 0; i < 640 * 4; i+=4) {
-      var col = amplitudeArray[i / 4];
-      for (var j = 0; j < 480 * 4; j+=4) {
-      var jx = j * 640;
-      pixels.data[i + jx] = col;  
-      pixels.data[i + jx + 1] = col;
-      pixels.data[i + jx + 2] = col;
-      
     }
-      // c.fillStyle = `rgba(${amplitudeArray[i]}, 0, 0, 1)`;
-      // c.fillRect(i, 0, 1, 480);
-    }
-      cv.grad.putImageData(pixels, 0, 0);
-      
-      cv.blur.globalCompositeOperation = 'hard-light';
-      cv.blur.drawImage(cv.gradCanvas, 0, 0);
-      cv.blur.globalCompositeOperation = 'normal';*/
-      
-    }
-    
-    
     
     cv.buff.globalCompositeOperation = 'normal';
     cv.buff.globalAlpha = 0.12;
     cv.buff.drawImage(cv.blurCanvas, 0, 0);
     cv.buff.globalAlpha = 1;
-    
-    
-    
+
     // draw the buffer to the main context
     c.drawImage(cv.buffCanvas, 0, 0);
     
@@ -467,26 +422,24 @@
     }
     
     cv.grad.putImageData(pixels, 0, 0);
-    
-    
-   
-    if (clump === true) {
+
+    if (clump) {
       adx = activeX;
       ady = activeY;  
     }
     
     ddx += (adx - ddx) / 12;
     ddy += (ady - ddy) / 12;
+    
     /*
     c.save();
     c.translate(activeX,  activeY);
     c.scale(activeZoom, activeZoom);
     c.translate(-activeX, -activeY);
-     
+    
     c.drawImage(cv.gradCanvas, 0, 0);
     c.restore();*/
-    
-      
+
     c.drawImage(cv.gradCanvas, 0, 0);
     
     activeZoom = 2;
@@ -494,8 +447,7 @@
     var zzz = `translate3d(${ddx}px, ${ddy}px, 0) scale3d(${activeZoom}, ${activeZoom}, 1) translate3d(-${ddx}px, -${ddy}px, 0)`;
     console.log(zzz);
     
-    frame.style.transform = zzz;
-    
+    // frame.style.transform = zzz;
     
     requestAnimationFrame(loop);
   };
