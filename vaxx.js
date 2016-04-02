@@ -1,5 +1,5 @@
 (function() {
-  var WIDTH = 630,
+  var WIDTH = 640,
       HEIGHT = 480;
   
   var fx, mouseX, mouseY;
@@ -164,7 +164,7 @@
     var AudioContext, canvas, video, mediaPrefs, c, pixels,
     cv, contrast, factor, worms, worm, wormIndex,
     crackles, crackle, audioCtx, analyser, jsNode,
-    amplitudes, audioStream;
+    amplitudes, audioStream, zoomCanv;
     
     
     var error = function(error) {
@@ -187,11 +187,19 @@
   };
   
   cv = {};
+  
   canvas = createCanvas();
   var frame = document.createElement('div');
   frame.classList.add('frame');
   document.body.appendChild(frame);
   frame.appendChild(canvas);
+  
+  zoomCanv = createCanvas();
+  zoomCanv.classList.add('zoom-canv');
+  zoomCanv.width = canvas.width;
+  zoomCanv.height = canvas.height;
+  zoomCanv.ctx = zoomCanv.getContext('2d');
+  document.body.appendChild(zoomCanv);
   
   c = canvas.getContext('2d');
   c.fillRect(0, 0, canvas.width, canvas.height);
@@ -430,10 +438,10 @@
       adx = activeX;
       ady = activeY;  
       if (Math.random() < 0.05) {
-        activeZoom = 1 + Math.random() * 2;  
+        activeZoom = 3 + Math.random() * 2;  
       }
       
-      activeZoom = 1.8;
+      activeZoom = 4;
       
     } else 
     
@@ -443,20 +451,45 @@
      
 
     zoomDest += (activeZoom - zoomDest) / 12;
-    ddx += (adx - ddx) / 22;
-    ddy += (ady - ddy) / 22;
+    ddx += (adx - ddx) / 6;
+    ddy += (ady - ddy) / 6;
     
 
     c.drawImage(cv.gradCanvas, 0, 0);
-
+    
+   
+   
+  
+    if (Math.random() < 0.03) {
+      mode = 'in';
+    }
+  
+    if (Math.random() < 0.03) {
+      mode = 'out';
+    }
+  
+    if (mode === 'out') {
+      zFade = 0;
+    } else if (mode === 'in') {
+      zFade = 1;
+    }
+  
+   zoomCanv.ctx.drawImage(cv.gradCanvas, 0, 0);
+       // translate3d(-${(width / 2)}px, -${(height / 2) }px, 0)
+      //translate3d(${window.innerWidth / 2 }px, ${window.innerHeight / 2}px, 0)
     var camTrans = `
-        translate3d(${window.innerWidth / 2}px, ${window.innerHeight / 2}px, 0)
+        
+        translate3d(${window.innerWidth / 2 }px, ${window.innerHeight / 2}px, 0)
         translate3d(${ddx}px, ${ddy}px, 0) 
         scale3d(${zoomDest}, ${zoomDest}, 1) 
-        translate3d(-${ddx}px, -${ddy}px, 0)
-        translate3d(-${(width / 2)}px, -${(height / 2) }px, 0)
+        translate3d(-${ddx }px, -${ddy }px, 0)
+        translate3d(-${(width / 2) / activeZoom}px, -${(height / 2)  / activeZoom}px, 0)
+       
         `;
-   
+
+  
+  zd += (zFade - zd ) / 4;
+  zoomCanv.style.opacity = zd;
       
     frame.style.transform = camTrans;
     
@@ -466,6 +499,7 @@
   loop();
 };
  
+ var mode = 'in', zfade = 1, zd = 0;
  // start
  fx = new Fx(WIDTH, HEIGHT);
 

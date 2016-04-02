@@ -11,12 +11,19 @@
       .frame {
         position: absolute;
         left: 0%;  top: 0%;
-        zoom: 1.5;
+        -webkit-transform-origin: 0 0;
       }
       
       canvas {
         position: absolute;
         left: 0; top: 0;
+      }
+      
+      .zoom-canv {
+        
+        height: 100%;
+        left: 50%;
+        transform: translate(-50%, 0%);
       }
       
       video {
