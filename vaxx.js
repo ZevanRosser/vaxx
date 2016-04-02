@@ -433,7 +433,7 @@
         activeZoom = 1 + Math.random() * 2;  
       }
       
-      activeZoom = 1.4;
+      activeZoom = 1.8;
       
     } else 
     
@@ -441,55 +441,24 @@
        //  activeZoom = 1;
       }
      
-    
-     
-    
-    /*if (window.mode === 'normal') {
-      adx = ady = ddx = ddy = 0;  
-       activeZoom = 1;
-    }*/
-    
-    // window.mode = 'pan';
-    
-    /*
-    if (Math.random() < 0.01) {
-      window.mode = 'pan';
-    }
-    
-    if (Math.random() < 0.01) {
-      window.mode = 'normal';
-     
-    }*/
-    
-    
+
     zoomDest += (activeZoom - zoomDest) / 12;
     ddx += (adx - ddx) / 22;
     ddy += (ady - ddy) / 22;
     
-    /*
-    c.save();
-    c.translate(activeX,  activeY);
-    c.scale(activeZoom, activeZoom);
-    c.translate(-activeX, -activeY);
-    
-    c.drawImage(cv.gradCanvas, 0, 0);
-    c.restore();*/
 
     c.drawImage(cv.gradCanvas, 0, 0);
-    
-    
-    
-    var zzz = `
+
+    var camTrans = `
         translate3d(${window.innerWidth / 2}px, ${window.innerHeight / 2}px, 0)
         translate3d(${ddx}px, ${ddy}px, 0) 
         scale3d(${zoomDest}, ${zoomDest}, 1) 
         translate3d(-${ddx}px, -${ddy}px, 0)
-        translate3d(-${(width / 2) * zoomDest}px, -${(height / 2) * zoomDest}px, 0)
-          `;
+        translate3d(-${(width / 2)}px, -${(height / 2) }px, 0)
+        `;
    
-     
-    console.log(window.mode, zzz);
-    frame.style.transform = zzz;
+      
+    frame.style.transform = camTrans;
     
     requestAnimationFrame(loop);
   };
