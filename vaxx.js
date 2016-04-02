@@ -198,7 +198,8 @@
   
   mediaPrefs = { video: true, audio: true };
   video = document.createElement('video');
-  // document.body.appendChild(video);
+ 
+  document.body.appendChild(video);
   // brightness and contrast 
   contrast = 10;
   factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
@@ -445,7 +446,7 @@
     activeZoom = 2;
     
     var zzz = `translate3d(${ddx}px, ${ddy}px, 0) scale3d(${activeZoom}, ${activeZoom}, 1) translate3d(-${ddx}px, -${ddy}px, 0)`;
-    console.log(zzz);
+     
     
     // frame.style.transform = zzz;
     
