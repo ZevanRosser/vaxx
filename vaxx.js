@@ -23,7 +23,7 @@ to something.... @TODO good description
   config = {
     wormAlpha: { min: 0.1, offset: 0.25 },
     feedbackAlpha: 0.12,
-    vidContrast: 10
+    vidContrast: 12
   };
 
   // debugging only
@@ -302,7 +302,7 @@ to something.... @TODO good description
 
     var audioCtx;
     try {
-      audioCtx = new AudioContext();
+      audioCtx = new (webkitAudioContext || AudioContext)();
 
       console.log(audioCtx);
     } catch(e) {
@@ -450,7 +450,7 @@ to something.... @TODO good description
 
         // maxAmp = (maxAmp < 0.6) ? maxAmp / 30 : maxAmp / 4;
 
-        if (maxAmp < 0.6) {
+        if (maxAmp < 0.8) {
           maxAmp /= 30;
         } else {
           maxAmp /= 4;
@@ -536,8 +536,8 @@ to something.... @TODO good description
 
 
       //  zeno cam
-      ddx += (adx - ddx) / 22;
-      ddy += (ady - ddy) / 12;
+      ddx += (adx - ddx) / 52;
+      ddy += (ady - ddy) / 32;
 
 
       c.drawImage(cs.gradCanvas, 0, 0);
