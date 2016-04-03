@@ -10,8 +10,20 @@ to something.... @TODO good description
 (function() {
   var WIDTH = 640,
       HEIGHT = 480;
+  
+  // @TODO global config:
+  // -> particle intensity
+  // -> video feedback intensity
+  // etc...
 
-  var fx, mouseX, mouseY;
+  var fx, config, mouseX, mouseY;
+  
+  // common config values - sometimes need to be 
+  // adjusted based on lighting situation
+  config = {
+    wormAlpha: { min: 0.1, offset: 0.25 },
+    feedbackAlpha: 0.12
+  };
 
   // debugging only
   mouseX = mouseY = 0;
@@ -109,7 +121,8 @@ to something.... @TODO good description
       this.p.y = y;
       this.p.vx = 0;
       this.p.vy = 0;
-      this.maxAlpha = 0.1 + Math.random() * 0.25;
+      this.maxAlpha = config.wormAlpha.min 
+        + Math.random() * config.wormAlpha.offset;
       this.alphaSpeed = 0.01 * Math.random() + 0.01;
       this.vRad = Math.random() * 3;
       this.t = Math.random() * 2 * Math.PI;
@@ -451,7 +464,7 @@ to something.... @TODO good description
       }
 
       cs.buff.globalCompositeOperation = 'normal';
-      cs.buff.globalAlpha = 0.12;
+      cs.buff.globalAlpha = config.feedbackAlpha;
       cs.buff.drawImage(cs.blurCanvas, 0, 0);
       cs.buff.globalAlpha = 1;
 
