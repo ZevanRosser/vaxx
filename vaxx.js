@@ -103,7 +103,7 @@ to something.... @TODO good description
 
     reset: function(x, y, r, g, b) {
 
-      // set worm particle properties
+      // [[ set worm particle properties /\_
       this.active = true;
       this.p.x = x;
       this.p.y = y;
@@ -120,7 +120,7 @@ to something.... @TODO good description
       this.phase = 1;
       this.damp = 16 + Math.random() * 4;
 
-      // sometimes make a long lasting reddish particle
+      /* Sometimes Make Å long lasting reddish particle ***/
       if (Math.random() < 0.005) {
         this.maxAlpha = 0.6;
         this.alphaSpeed = 0.005;
@@ -129,7 +129,8 @@ to something.... @TODO good description
         this.vRad = 6;
       }
 
-      // sometimes make a large particle with a low alpha
+      // _sometimes_ make a large
+      //                  particle with a low alpha)))))))
       if (Math.random() < 0.3) {
         this.size = Math.random() * 10 + 10 ;
         this.maxAlpha /= 5;
@@ -141,26 +142,26 @@ to something.... @TODO good description
     update: function(c) {
       if (!this.active) { return; }
 
-      // polar coordinates determine destination velocity
+      // @ polar coordinates determine destination velocity @
       this.dx = this.vRad * Math.cos(this.t);
       this.dy = this.vRad * Math.sin(this.t);
 
-      // randomly alter spped and direction
+      // ~~# randomly alter spped and direction #~~
       if (Math.random() < 0.1) {
         this.vRad = Math.random() * 3;
         this.t = Math.random() * 2 * Math.PI;
       }
 
-      // ease-out to destination velocity
+      // ease-out__to__destination__velocitY ::::::::=
       this.p.vx += (this.dx - this.p.vx) / this.damp;
       this.p.vy += (this.dy - this.p.vy) / this.damp;
 
-      // increment theta
+      // increment theta (-)
       this.t += this.ti;
 
       this.p.update();
 
-      // fade the worm in
+      // fade the worm in /////////////////}
       if (this.phase === 1) {
         this.alpha += 0.05;
 
@@ -169,7 +170,7 @@ to something.... @TODO good description
           this.phase = 2;
         }
 
-        // fade the worm out
+        // fade the worm out \\\\\\\\\{}
       } else if (this.phase === 2) {
         this.alpha -= this.alphaSpeed;
 
@@ -178,7 +179,7 @@ to something.... @TODO good description
         }
       }
 
-      // draw the worm
+      // D R A W THE WO R M
       c.fillStyle = `${this.col} ${this.alpha})`;
       c.beginPath();
       c.arc(this.p.x, this.p.y, this.size, 0, Math.PI * 2, false);
@@ -187,14 +188,14 @@ to something.... @TODO good description
     }
   };
 
-  // main fx class
+  // MAIN F.X.
   var Fx = function(width, height) {
     var SIZE = width * height * 4,
         WORM_NUM = 50,
         CRACKLE_NUM = 20,
         SAMPLE_SIZE = 1024;
 
-    var AudioContext, canvas, video, mediaPrefs, c, pixels,
+    var canvas, video, mediaPrefs, c, pixels,
         cs, contrast, factor, worms, worm, wormIndex,
         crackles, crackle, audioCtx, analyser, jsNode,
         amplitudes, audioStream, zoomCanv, frame;
@@ -222,6 +223,9 @@ to something.... @TODO good description
       return canvas;
     };
 
+    // \ / \ / \ / \  / \ / \ / \  / \ / \\
+    // - - easy way to have a bunch of contexts
+    // . . . that act SORT OF LIKE layers
     var addBuffer = function(name) {
       var canvas;
       canvas = createCanvas();
@@ -249,10 +253,10 @@ to something.... @TODO good description
     video = document.createElement('video');
 
     document.body.appendChild(video);
+
     // brightness and contrast
     contrast = 10;
     factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
-
 
     // create some worms
     worms = [];
@@ -262,9 +266,8 @@ to something.... @TODO good description
       worms.push(new Worm());
     }
 
-    // create some worms
+    // create crackles
     crackles = [];
-    // wormIndex = 0;
 
     for(var i = 0; i < CRACKLE_NUM; i++) {
       var crackle = new Crackle();
@@ -272,7 +275,7 @@ to something.... @TODO good description
       crackles.push(crackle);
     }
 
-    AudioContext = window.webkitAudioContext || window.AudioContext;
+
     var audioCtx;
     try {
       audioCtx = new AudioContext();
@@ -308,7 +311,7 @@ to something.... @TODO good description
       }, error);
     } else if (navigator.webkitGetUserMedia) {
       navigator.webkitGetUserMedia(mediaPrefs, function(stream){
-        video.src = window.webkitURL.createObjectURL(stream);
+        video.src = window.URL.createObjectURL(stream);
         video.play();
         initAudio(stream);
       }, error);
@@ -333,7 +336,8 @@ to something.... @TODO good description
     var activeZoom = 1;
     var loop = function() {
       var r, g, b, cr, cg, cb, qi, worm, t,
-          xs, ys, wx, wy, clump;
+          xs, ys, wx, wy, clump, avgX, avgY,
+          activeWorms, minAmp, maxAmp, amp;
 
       // frame differencing
       cs.diff.drawImage(video, 0, 0);
@@ -347,12 +351,14 @@ to something.... @TODO good description
 
       xs = [];
       ys = [];
+      avgX = avgY = 0;
+      activeWorms = 0;
 
-      var avgX = avgY = 0;
-      var activeWorms = 0;
-
-
-      // draw some worms when there is motion
+      /* Analize and derive information from video activity...
+         1) Where do we want to put some worms?
+         2) Where is the main area (clump) of activity on the cam feed
+                    (i f a n y)
+      ****/
       if (Math.random() < 0.8) {
         for (var i = 0; i < SIZE; i += 4) {
           r = pixels.data[i];
@@ -393,12 +399,12 @@ to something.... @TODO good description
         }
       }
 
+      // R E N D E R -- W O R M Z
       for (var i = 0; i < WORM_NUM; i++) {
         if (worms[i].active) {
           worms[i].update(cs.diff);
         }
       }
-
 
       // combine actual video feed and frame differencing
       // for a trail effect
@@ -410,21 +416,22 @@ to something.... @TODO good description
       cs.buff.drawImage(cs.diffCanvas, 0, 0);
 
       if (amplitudes) {
-        var minValue = 9999999;
-        var maxValue = 0;
+        minAmp = 9999999;
+        maxAmp = 0;
+
         for (var i = 0; i < amplitudes.length; i++) {
-          var value = amplitudes[i] / 256;
-          if(value > maxValue) {
-            maxValue = value;
-          } else if(value < minValue) {
-            minValue = value;
+          amp = amplitudes[i] / 256;
+          if(amp > maxAmp) {
+            maxAmp = amp;
+          } else if(amp < minAmp) {
+            minAmp = amp;
           }
         }
 
-        if (maxValue < 0.6) {
-          maxValue /= 30;
+        if (maxAmp < 0.6) {
+          maxAmp /= 30;
         } else {
-          maxValue /= 4;
+          maxAmp /= 4;
         }
 
         // add a very subtle scaled video feedback effect
@@ -432,9 +439,9 @@ to something.... @TODO good description
         cs.blur.save();
         // cs.blur.translate(-width * 0.005, -height * 0.005);
         // cs.blur.scale(1.01, 1.01);
-        var halfValue = maxValue / 2;
+        var halfValue = maxAmp / 2;
         cs.blur.translate(-width * halfValue, -height * halfValue);
-        cs.blur.scale(1 + maxValue, 1 + maxValue);
+        cs.blur.scale(1 + maxAmp, 1 + maxAmp);
         cs.blur.drawImage(canvas, 0, 0);
         cs.blur.restore();
 
@@ -499,9 +506,6 @@ to something.... @TODO good description
       c.drawImage(cs.gradCanvas, 0, 0);
 
 
-
-
-
       if (Math.random() < 0.1 && modeCount > targTime) {
         mode = 'in';
         modeCount = 0;
@@ -524,16 +528,12 @@ to something.... @TODO good description
       }
 
      zoomCanv.ctx.drawImage(cs.gradCanvas, 0, 0);
-         // translate3d(-${(width / 2)}px, -${(height / 2) }px, 0)
-        //translate3d(${window.innerWidth / 2 }px, ${window.innerHeight / 2}px, 0)
-      var camTrans = `
-
+     var camTrans = `
           translate3d(${window.innerWidth / 2 }px, ${window.innerHeight / 2}px, 0)
           translate3d(${ddx}px, ${ddy}px, 0)
           scale3d(${zoomDest}, ${zoomDest}, 1)
           translate3d(-${ddx }px, -${ddy }px, 0)
           translate3d(-${(width / 2) / activeZoom}px, -${(height / 2)  / activeZoom}px, 0)
-
           `;
 
 
