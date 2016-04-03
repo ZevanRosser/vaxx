@@ -22,7 +22,8 @@ to something.... @TODO good description
   // adjusted based on lighting situation
   config = {
     wormAlpha: { min: 0.1, offset: 0.25 },
-    feedbackAlpha: 0.12
+    feedbackAlpha: 0.12,
+    vidContrast: 10
   };
 
   // debugging only
@@ -215,12 +216,19 @@ to something.... @TODO good description
     // @TODO clean up
     var mode = 'in', zfade = 1, zd = 1, modeCount = 0, targTime = 120;
 
+    var ddx = ddy = adx = ady = bdx = bdy = 0;
+
+    var activeX = activeY = 0;
+
+    var zoomDest = 1;
+    var activeZoom = 1;
+
     // buffer context map
     cs = {};
 
 
     /* \/\/\/\/\/\/\\\\/\/\/\/\\\//
-    == Utils
+    == fns
     /\/\/\//\/\/\/\/\/\/\\\/\//\/\/\*/
 
     var error = function(error) {
@@ -264,14 +272,14 @@ to something.... @TODO good description
     mediaPrefs = { video: true, audio: true };
     video = document.createElement('video');
 
-    // !!! prevent audio feedbacK - thanks SO
-    //
+    // !!! prevent audio feedbacK - thanks SO:::
+    // http://stackoverflow.com/questions/34687073/web-audio-api-prevent-microphone-input-from-being-played-through-speakers?rq=1
     video.muted = true;
 
     document.body.appendChild(video);
 
     // brightness and contrast
-    contrast = 10;
+    contrast = config.vidContrast;
     factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
 
     // create some worms
@@ -298,7 +306,7 @@ to something.... @TODO good description
 
       console.log(audioCtx);
     } catch(e) {
-      alert('Web Audio API is not supported in this browser');
+      alert('audio error - get a better browser');
     }
 
     var initAudio = function(stream) {
@@ -307,29 +315,20 @@ to something.... @TODO good description
       sourceNode = audioCtx.createMediaStreamSource(stream);
       analyser = audioCtx.createAnalyser();
       jsNode = audioCtx.createScriptProcessor(SAMPLE_SIZE, 1, 1);
-      gainNode = audioCtx.createGain();
 
       amplitudes = new Uint8Array(analyser.frequencyBinCount);
 
       jsNode.onaudioprocess = function () {
-
         amplitudes = new Uint8Array(analyser.frequencyBinCount);
         analyser.getByteTimeDomainData(amplitudes);
-
       };
 
-     console.log(jsNode);
-      // Now connect the nodes together
-      // Do not connect source node to destination - to avoid feedback
       sourceNode.connect(analyser);
       analyser.connect(jsNode);
-      // gainNode.connect(jsNode);
-      // gainNode.gain.value = 0;
       jsNode.connect(audioCtx.destination);
-      // gainNode.connect(context.destination);
     };
 
-    // get the media
+    // get the media (((((((.)))))))
     if (navigator.getUserMedia) {
       navigator.getUserMedia(mediaPrefs, function(stream) {
         video.src = stream;
@@ -355,12 +354,6 @@ to something.... @TODO good description
     cs.buff.fillStyle = 'black';
     cs.buff.fillRect(0, 0, width, height);
 
-    var ddx = ddy = adx = ady = bdx = bdy = 0;
-
-    var activeX = activeY = 0;
-
-    var zoomDest = 1;
-    var activeZoom = 1;
     var loop = function() {
       var r, g, b, cr, cg, cb, qi, worm, t,
           xs, ys, wx, wy, clump, avgX, avgY,
