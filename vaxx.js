@@ -10,15 +10,15 @@ to something.... @TODO good description
 (function() {
   var WIDTH = 640,
       HEIGHT = 480;
-  
+
   // @TODO global config:
   // -> particle intensity
   // -> video feedback intensity
   // etc...
 
   var fx, config, mouseX, mouseY;
-  
-  // common config values - sometimes need to be 
+
+  // common config values - sometimes need to be
   // adjusted based on lighting situation
   config = {
     wormAlpha: { min: 0.1, offset: 0.25 },
@@ -121,7 +121,7 @@ to something.... @TODO good description
       this.p.y = y;
       this.p.vx = 0;
       this.p.vy = 0;
-      this.maxAlpha = config.wormAlpha.min 
+      this.maxAlpha = config.wormAlpha.min
         + Math.random() * config.wormAlpha.offset;
       this.alphaSpeed = 0.01 * Math.random() + 0.01;
       this.vRad = Math.random() * 3;
@@ -210,8 +210,7 @@ to something.... @TODO good description
 
     var canvas, video, mediaPrefs, c, pixels,
         cs, contrast, factor, worms, worm, wormIndex,
-        crackles, crackle, audioCtx, analyser, jsNode,
-        amplitudes, audioStream, zoomCanv, frame;
+        crackles, crackle, audioCtx, amplitudes, zoomCanv, frame;
 
     // @TODO clean up
     var mode = 'in', zfade = 1, zd = 1, modeCount = 0, targTime = 120;
@@ -265,6 +264,10 @@ to something.... @TODO good description
     mediaPrefs = { video: true, audio: true };
     video = document.createElement('video');
 
+    // !!! prevent audio feedbacK - thanks SO
+    //
+    video.muted = true;
+
     document.body.appendChild(video);
 
     // brightness and contrast
@@ -292,27 +295,38 @@ to something.... @TODO good description
     var audioCtx;
     try {
       audioCtx = new AudioContext();
+
+      console.log(audioCtx);
     } catch(e) {
       alert('Web Audio API is not supported in this browser');
     }
 
     var initAudio = function(stream) {
+      var sourceNode, analyser, jsNode, analyser;
+
       sourceNode = audioCtx.createMediaStreamSource(stream);
-      audioStream = stream;
-      analyser   = audioCtx.createAnalyser();
+      analyser = audioCtx.createAnalyser();
       jsNode = audioCtx.createScriptProcessor(SAMPLE_SIZE, 1, 1);
+      gainNode = audioCtx.createGain();
 
       amplitudes = new Uint8Array(analyser.frequencyBinCount);
 
       jsNode.onaudioprocess = function () {
+
         amplitudes = new Uint8Array(analyser.frequencyBinCount);
         analyser.getByteTimeDomainData(amplitudes);
+
       };
+
+     console.log(jsNode);
       // Now connect the nodes together
       // Do not connect source node to destination - to avoid feedback
       sourceNode.connect(analyser);
       analyser.connect(jsNode);
+      // gainNode.connect(jsNode);
+      // gainNode.gain.value = 0;
       jsNode.connect(audioCtx.destination);
+      // gainNode.connect(context.destination);
     };
 
     // get the media
@@ -446,6 +460,8 @@ to something.... @TODO good description
         } else {
           maxAmp /= 4;
         }
+
+        console.log(maxAmp);
 
         // add a very subtle scaled video feedback effect
         cs.blur.globalAlpha = 1;
