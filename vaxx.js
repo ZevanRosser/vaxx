@@ -355,7 +355,7 @@ to something.... @TODO good description
     cs.buff.fillStyle = 'black';
     cs.buff.fillRect(0, 0, width, height);
 
-    var ddx = ddy = adx = ady = 0;
+    var ddx = ddy = adx = ady = bdx = bdy = 0;
 
     var activeX = activeY = 0;
 
@@ -512,7 +512,7 @@ to something.... @TODO good description
 
 
       if (clump) {
-        adx = activeX ;
+        adx = activeX;
         ady = activeY;
         if (Math.random() < 0.025) {
           var rand = 1.5 + Math.random() * .3;
@@ -532,35 +532,45 @@ to something.... @TODO good description
 
 
       zoomDest += (activeZoom - zoomDest) / 22;
-      ddx += (adx - ddx) / 62;
-      ddy += (ady - ddy) / 42;
+
+      ddx -= bdx;
+      ddy -= bdy;
+
+      /* - -  elastic camera
+      bdx = ((ddx - adx) / 8 + bdx) / 1.5;
+      bdy = ((ddy - ady) / 8 + bdy) / 1.5;*/
+
+
+      //  zeno cam
+      ddx += (adx - ddx) / 22;
+      ddy += (ady - ddy) / 12;
 
 
       c.drawImage(cs.gradCanvas, 0, 0);
 
 
-      if (Math.random() < 0.1 && modeCount > targTime) {
+      if (Math.random() < 0.1 && mode === 'out') {
+        mode = 'wait';
         clearTimeout(window.outOut);
         window.outOut = setTimeout(function() {
           mode = 'in';
-        }, 500);
-        modeCount = 0;
-        targTime = 10 + Math.random() * 30;
+        }, 1000 + Math.random() * Math.random() * 3000);
+        // modeCount = 0;
+        // targTime = 10 + Math.random() * 30;
       }
 
-      if (Math.random() < 0.1 && modeCount > targTime) {
+      if (Math.random() < 0.1 && mode === 'in') {
+        mode = 'wait';
         clearTimeout(window.outOut);
         window.outOut = setTimeout(function() {
           mode = 'out';
-        }, 500);
+        }, 1000 + Math.random() * Math.random() * 3000);
 
-        modeCount = 0;
-        targTime = 10 + Math.random() * 30;
+        // modeCount = 0;
+        // targTime = 10 + Math.random() * 30;
       }
 
       modeCount++;
-
-
 
       if (mode === 'out') {
         zFade = 0;
