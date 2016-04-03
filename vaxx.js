@@ -515,7 +515,7 @@ to something.... @TODO good description
         adx = activeX;
         ady = activeY;
         if (Math.random() < 0.025) {
-          var rand = 1.5 + Math.random() * .3;
+          var rand = 1.5 + Math.random() * .4;
           if (activeZoom === 1) {
             zoomDest = rand;
           }
