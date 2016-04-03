@@ -443,7 +443,7 @@ to something.... @TODO good description
       cs.buff.drawImage(cs.diffCanvas, 0, 0);
 
       if (amplitudes) {
-        minAmp = 9999999;
+        minAmp = 0xFFFFF;
         maxAmp = 0;
 
         for (var i = 0; i < amplitudes.length; i++) {
@@ -455,13 +455,13 @@ to something.... @TODO good description
           }
         }
 
-        if (maxAmp < 0.6) {
-          maxAmp /= 30;
-        } else {
-          maxAmp /= 4;
-        }
+        maxAmp = (maxAmp < 0.6) ? maxAmp / 30 : maxAmp / 4;
 
-        console.log(maxAmp);
+        // if (maxAmp < 0.6) {
+        //   maxAmp /= 30;
+        // } else {
+        //   maxAmp /= 4;
+        // }
 
         // add a very subtle scaled video feedback effect
         cs.blur.globalAlpha = 1;
@@ -515,7 +515,11 @@ to something.... @TODO good description
         adx = activeX ;
         ady = activeY;
         if (Math.random() < 0.025) {
-          activeZoom = 1.5 + Math.random() * .3;
+          var rand = 1.5 + Math.random() * .3;
+          if (activeZoom === 1) {
+            zoomDest = rand;
+          }
+          activeZoom = rand;
         }
 
         // activeZoom = 4;
@@ -536,18 +540,26 @@ to something.... @TODO good description
 
 
       if (Math.random() < 0.1 && modeCount > targTime) {
-        mode = 'in';
+        clearTimeout(window.outOut);
+        window.outOut = setTimeout(function() {
+          mode = 'in';
+        }, 500);
         modeCount = 0;
-        targTime = 10 + Math.random() * 60;
+        targTime = 10 + Math.random() * 30;
       }
 
       if (Math.random() < 0.1 && modeCount > targTime) {
-        mode = 'out';
+        clearTimeout(window.outOut);
+        window.outOut = setTimeout(function() {
+          mode = 'out';
+        }, 500);
+
         modeCount = 0;
-        targTime = 10 + Math.random() * 60;
+        targTime = 10 + Math.random() * 30;
       }
 
       modeCount++;
+
 
 
       if (mode === 'out') {
@@ -566,8 +578,8 @@ to something.... @TODO good description
           `;
 
 
-    zd += (zFade - zd ) / 4;
-    zoomCanv.style.opacity = zd;
+      zd += (zFade - zd) / 4;
+      zoomCanv.style.opacity = zd;
 
       frame.style.transform = camTrans;
 
