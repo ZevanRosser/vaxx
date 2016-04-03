@@ -205,7 +205,7 @@ to something.... @TODO good description
   // MAIN F.X.
   var Fx = function(width, height) {
     var SIZE = width * height * 4,
-        WORM_NUM = 50,
+        WORM_NUM = 100,
         CRACKLE_NUM = 20,
         SAMPLE_SIZE = 1024;
 
@@ -436,7 +436,7 @@ to something.... @TODO good description
       cs.buff.drawImage(cs.diffCanvas, 0, 0);
 
       if (amplitudes) {
-        minAmp = 0xFFFFF;
+        minAmp = 9999999;
         maxAmp = 0;
 
         for (var i = 0; i < amplitudes.length; i++) {
@@ -448,14 +448,15 @@ to something.... @TODO good description
           }
         }
 
-        maxAmp = (maxAmp < 0.6) ? maxAmp / 30 : maxAmp / 4;
+        // maxAmp = (maxAmp < 0.6) ? maxAmp / 30 : maxAmp / 4;
 
-        // if (maxAmp < 0.6) {
-        //   maxAmp /= 30;
-        // } else {
-        //   maxAmp /= 4;
-        // }
+        if (maxAmp < 0.6) {
+          maxAmp /= 30;
+        } else {
+          maxAmp /= 4;
+        }
 
+        console.log(maxAmp, '/');
         // add a very subtle scaled video feedback effect
         cs.blur.globalAlpha = 1;
         cs.blur.save();
