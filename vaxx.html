@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Vaxx</title>
+    <style>
+      body {
+        background: black;
+      }
+      
+      .frame {
+        position: absolute;
+        left: 0%;  top: 0%;
+        -webkit-transform-origin: 0 0;
+      }
+      
+      canvas {
+        position: absolute;
+        left: 0; top: 0;
+      }
+      
+      .zoom-canv {
+        
+        height: 100%;
+        left: 50%;
+        transform: translate(-50%, 0%);
+      }
+      
+      video {
+        opacity: 0;
+        width: 200px;
+        z-index: 100;
+        position: absolute;
+        bottom: 0; right: 0;  
+      }
+    </style>
+  </head>
+  <body>
+    <script src="vaxx.js"></script>
+  </body>
+</html>
