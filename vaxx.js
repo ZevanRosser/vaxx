@@ -21,7 +21,7 @@ to something.... @TODO good description
   // common config values - sometimes need to be
   // adjusted based on lighting situation
   config = {
-    wormAlpha: { min: 0.1, offset: 0.25 },
+    wormAlpha: { min: 0.1, offset: 0.3 },
     feedbackAlpha: 0.12,
     vidContrast: 12
   };
@@ -124,7 +124,7 @@ to something.... @TODO good description
       this.p.vy = 0;
       this.maxAlpha = config.wormAlpha.min
         + Math.random() * config.wormAlpha.offset;
-      this.alphaSpeed = 0.01 * Math.random() + 0.01;
+      this.alphaSpeed = 0.005 * Math.random() + 0.005;
       this.vRad = Math.random() * 3;
       this.t = Math.random() * 2 * Math.PI;
       this.ti = Math.random() * 0.2 - 0.1;
@@ -205,7 +205,7 @@ to something.... @TODO good description
   // MAIN F.X.
   var Fx = function(width, height) {
     var SIZE = width * height * 4,
-        WORM_NUM = 100,
+        WORM_NUM = 300,
         CRACKLE_NUM = 20,
         SAMPLE_SIZE = 1024;
 
