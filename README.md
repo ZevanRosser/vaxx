@@ -3,7 +3,7 @@
 vaxx is an experiment which uses motion tracking to stylize a video feed
 
 Try it out here:
-http://zevanrosser.github.io/vaxx/
+https://zevanrosser.github.io/vaxx/
 
 Watch a demo video here:
 
